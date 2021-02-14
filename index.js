@@ -1,6 +1,7 @@
 const express = require("express");
 var bodyParser = require("body-parser");
-const { users, db } = require("./db/nedb");
+var cors = require("cors");
+const { users } = require("./db/nedb");
 // var Datastore = require("nedb");
 // let db = new Datastore();
 
@@ -10,18 +11,9 @@ let id = 0;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cors({ origin: "http://localhost:19006" }));
 
-var doc = {
-  hello: "world",
-  n: 5,
-  today: new Date(),
-  nedbIsAwesome: true,
-  notthere: null,
-  notToBeSaved: undefined, // Will not be saved
-  fruits: ["apple", "orange", "pear"],
-  infos: { name: "nedb" },
-};
-
+//Insert Mock Data
 users.insert([{ id: ++id }, { id: ++id }, { id: ++id }], (err, doc) => {
   console.log("inserted");
 });
@@ -41,11 +33,23 @@ app.get("/users", (req, res) => {
 app.post("/newUser", (req, res) => {
   let { data } = req.body;
   console.log(data);
+  // console.log(req.body);
   users.insert({ id: data }, (err, doc) => {
     if (err) console.log(err);
+    console.log("hahaha");
     console.log(doc);
   });
   res.send(req.body);
+});
+
+app.get("/deleteAllUser", (req, res) => {
+  // Removing all documents with the 'match-all' query
+  let n = 0;
+  users.remove({}, { multi: true }, function (err, numRemoved) {
+    console.log(numRemoved);
+    // n = numRemoved;
+  });
+  res.send(`done`);
 });
 
 app.listen(port, () => {
